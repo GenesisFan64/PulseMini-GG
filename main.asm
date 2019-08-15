@@ -46,9 +46,9 @@
 ; located at 38h
 ; ----------------------------------------------------------------
 
-		align 38h			; Align to 38h, For interrupts
-		di				; Disable interrupts to prevent over-calling
-		push	af			; Save all these registers, including the shadow ones
+		align 38h
+		di
+		push	af
 		in	a,(vdp_ctrl)
 		rlca
 		jp	c,.vint
@@ -57,7 +57,11 @@
 		jp	(RAM_HBlank)
 .vint:
 		jp	(RAM_VBlank)
-		
+Int_Exit:
+		pop	af
+		ei
+		ret
+
 ; ====================================================================
 ; ----------------------------------------------------------------
 ; Master System PAUSE Button interrupt
@@ -84,6 +88,7 @@ MS_VInt:
 		push	de
 		push	hl
 		
+		call	System_Input
 		call	Sound_Run
 
 		pop	hl
@@ -95,9 +100,7 @@ MS_VInt:
 		pop	bc
 		pop	iy
 		pop	ix
-		pop	af
-		ei				; Re-enable interrupts before exiting
-		ret				; Return
+		jp	Int_Exit
 		
 ; ====================================================================
 ; ----------------------------------------------------------------
@@ -105,9 +108,7 @@ MS_VInt:
 ; ----------------------------------------------------------------
 
 MS_HInt:
-		pop	af
-		ei				; Re-enable interrupts before exiting
-		ret				; Return
+		jp	Int_Exit
 
 ; ====================================================================
 ; ----------------------------------------------------------------
@@ -156,13 +157,17 @@ DataBank0_e:
 	if MOMPASS=1
 		message "This DATA bank uses: \{((DataBank0_e-DataBank0)&0FFFFh)}"
 	endif
-		
-		align 7FF0h		; Align up to 7FF0h (almost at the end of BANK 1)
-		db "TMR SEGA  "		; TMR SEGA
-		dw 0			; Checksum (externally calculated)
-		dw 0			; Serial
-		db 0			; Version
-		db 4Ch			; ROM size: 32k
+	
+; ============================================================
+; Header must be at the end of BANK 1
+; ============================================================
+
+		align 7FF0h			; Align up to 7FF0h (almost at the end of BANK 1)
+		db "TMR SEGA  "			; TMR SEGA
+		dw 0				; Checksum (externally calculated)
+		dw 0				; Serial
+		db 0				; Version
+		db 4Ch				; ROM size: 32k
 
 ; ====================================================================
 		

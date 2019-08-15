@@ -196,8 +196,8 @@ SndBuff_Track_1		ds 20h
 SndBuff_Track_2		ds 20h
 SndBuff_ChnlBuff_1	ds 20h*MAX_CHNLS
 SndBuff_ChnlBuff_2	ds 20h*MAX_CHNLS
-SndBuff_UsedChnls	ds 10
-SndBuff_UsedChnls_2	ds 10
+SndBuff_UsedChnls	ds MAX_CHNLS
+SndBuff_UsedChnls_2	ds MAX_CHNLS
 curr_NoiseMode		ds 1
 curr_SndBank		ds 1
 sizeof_mssnd		ds 1

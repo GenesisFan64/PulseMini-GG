@@ -8,7 +8,7 @@
 ; --------------------------------------------------------
 
 System_Init:
-	;Clear a work ram ($C001 to $DFEF)
+	;Clear WORK RAM ($C001 to $DFEF)
 		ld      hl,0C000h  		; hl - System RAM
 		ld      de,0C001h  		; de - (System RAM + 1)
 		ld      bc,01000h  		; bc - Bytes to copy
@@ -102,7 +102,7 @@ System_Input:
 		inc 	hl			; Next controller
  
 	; Controller 2
-		in      a,(joypad_1)		; Read controller 1 port (for Down/Up)
+		in      a,(joypad_1)		; Read controller 1 port again (for P2's Down/Up)
 		cpl				; Reverse bits, DU??????
 		rlca				; U?????D
 		rlca				; ?????DU

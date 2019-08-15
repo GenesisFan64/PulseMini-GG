@@ -19,9 +19,11 @@ Sound_Init:
 		out	(psg_ctrl),a			; Set NOISE Volume to OFF
 		; YM silence goes here
 	
-	; Init driver buffers
+	; Set priority to the BGM track buffer
 		ld	hl,SndBuff_Track_2+trck_Priority
 		ld	(hl),1
+		
+	; Init the first 4 channels as PSG
 		ld	ix,SndBuff_ChnlBuff_1
 		ld	iy,SndBuff_ChnlBuff_2
 		ld	b,4
@@ -34,6 +36,7 @@ Sound_Init:
 		add 	ix,de
 		add 	iy,de
 		djnz	.nxtchnl
+	; FM regs go here
 		ret
 
 ; ============================================================
@@ -42,7 +45,7 @@ Sound_Init:
 ; --------------------------------------------------------
 
 Sound_Run:
-; 		ld	a,(curr_SndBank)		; TODO: bankswitch
+; 		ld	a,(curr_SndBank)		; TODO: set bankswitch
 ; 		rst 	8
 		ld	iy,SndBuff_Track_1
 		ld	ix,SndBuff_ChnlBuff_1
@@ -50,6 +53,9 @@ Sound_Run:
 		ld	iy,SndBuff_Track_2
 		ld	ix,SndBuff_ChnlBuff_2
 		jp	SndDrv_ReadTrack
+; 		ld	a,(curr_SndBank)		; TODO: return bankswitch
+; 		rst 	8
+		ret
 
 ; ===================================================================
 ; ----------------------------------------------------
@@ -114,12 +120,12 @@ Sound_SetTrack:
 ; --------------------------------------------------------
 
 Sound_StopTrack:
-		ld	ix,SndBuff_Track_1
+		ld	hl,SndBuff_Track_1+trck_ReqFlag
 		or	a
 		jp	z,.sfx_prio
-		ld	ix,SndBuff_Track_2
+		ld	hl,SndBuff_Track_2+trck_ReqFlag
 .sfx_prio:
-		ld	(ix+trck_ReqFlag),2		; Request $02
+		ld	(hl),2		; Request $02
 		ret
 
 ; ===================================================================
@@ -524,18 +530,18 @@ SndDrv_ReadTrack:
 .lowprioset:	
 		ld	a,(ix+chnl_Chip)
 		or	a
-		jp	p,.plusfm
+; 		jp	p,.plusfm
 		rlca
 		rlca
 		rlca
 		and	00000011b
-		add 	a,6
-		jp	.leftfm
-.plusfm:
-		bit 	2,a
-		jp	z,.leftfm
-		dec	a
-.leftfm:
+; 		add 	a,6
+; 		jp	.leftfm
+; .plusfm:
+; 		bit 	2,a
+; 		jp	z,.leftfm
+; 		dec	a
+; .leftfm:
 		ld	de,0
 		ld	e,a
 		add 	hl,de
@@ -563,18 +569,18 @@ SndDrv_ReadTrack:
 		ret 	z
 		ld	a,(ix+chnl_Chip)
 		or	a
-		jp	p,.srchfm
+; 		jp	p,.srchfm
 		rlca
 		rlca
 		rlca
 		and	00000011b
-		add 	a,6
-		jp	.gosrch
-.srchfm:
-		bit 	2,a
-		jp	z,.gosrch
-		dec	a
-.gosrch:
+; 		add 	a,6
+; 		jp	.gosrch
+; .srchfm:
+; 		bit 	2,a
+; 		jp	z,.gosrch
+; 		dec	a
+; .gosrch:
 		ld	hl,SndBuff_UsedChnls
 		ld	de,0
 		ld	e,a
@@ -670,18 +676,18 @@ SndDrv_ReadTrack:
 .lowunlkset:	
 		ld	a,(ix+chnl_Chip)
 		or	a
-		jp	p,.uplusfm
+; 		jp	p,.uplusfm
 		rlca
 		rlca
 		rlca
 		and	00000011b
-		add 	a,6
-		jp	.uleftfm
-.uplusfm:
-		bit 	2,a
-		jp	z,.uleftfm
-		dec	a
-.uleftfm:
+; 		add 	a,6
+; 		jp	.uleftfm
+; .uplusfm:
+; 		bit 	2,a
+; 		jp	z,.uleftfm
+; 		dec	a
+; .uleftfm:
 		ld	de,0
 		ld	e,a
 		add 	hl,de
@@ -1782,7 +1788,7 @@ SndDrv_ResetChan:
 		push	ix
 		ld	de,SndBuff_UsedChnls_2
 		ld	hl,SndBuff_UsedChnls
-		ld	b,MAX_CHNLS			; FM channels
+		ld	b,MAX_CHNLS
 .nxtfmchnl:
 		push	bc
 		ld	a,(de)

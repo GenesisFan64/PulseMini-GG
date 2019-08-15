@@ -5,9 +5,6 @@
 
 ; --------------------------------------------------------
 ; Init Video
-; 
-; Uses:
-; a0-a2,d0-d1
 ; --------------------------------------------------------
 
 Video_Init:
@@ -37,9 +34,6 @@ Video_Init:
 ; Graphics will be located at in 160h
 ; (ASCII starts at 140h)
 ; Uses palette line 0
-; 
-; Uses:
-; a0-a2,d0-d1
 ; --------------------------------------------------------
 
 Video_InitPrint:
@@ -51,7 +45,7 @@ Video_InitPrint:
 		call	Video_LoadArt
 		
 		ld	hl,Pal_PrintFont
-		ld	b,6
+		ld	b,16
 		ld	d,0
 		call	Video_LoadPal		
 		ld	hl,Pal_PrintFont
@@ -231,10 +225,6 @@ Video_LoadArt:
 		ld	c,vdp_data
 .loop:
 		outi
-; 		ld	a,(hl)
-; 		out 	(c),a
-; 		inc 	hl
-
 		dec 	de
 		ld	a,e
 		or	d
