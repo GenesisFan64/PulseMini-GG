@@ -36,6 +36,9 @@ Sound_Init:
 		add 	ix,de
 		add 	iy,de
 		djnz	.nxtchnl
+		ld	a,-1
+		ld	(curr_PsgStereo),a
+
 	; FM regs go here
 		ret
 
@@ -340,12 +343,36 @@ SndDrv_ReadTrack:
 		call	.psg_envlope
 		ld	de,-20h			; back to PSG3
 		add 	ix,de
+; 		ld	a,(curr_NoiseMode)
+; 		and	00000011b
+; 		cp	3
+; 		jp	nz,.psg_envlope
+; 		ld	a,0DFh
+; 		out	(psg_ctrl),a
+; 		ret
+
 		ld	a,(curr_NoiseMode)
 		and	00000011b
 		cp	3
-		jp	nz,.psg_envlope
+		jp	z,.no_tone3
+		call	.psg_envlope
+		jr	.set_stereo
+.no_tone3:
 		ld	a,0DFh
 		out	(psg_ctrl),a
+.set_stereo:
+		in	a,(gg_info)
+		and	1Fh
+		ret	nz
+		ld	a,(curr_PsgStereo)
+		ld	c,a
+		ld	a,(curr_PsgStereo+1)
+		cp	c
+		jp	z,.not_stereo
+		ld	a,c
+		ld	(curr_PsgStereo+1),a
+		out	(gg_stereo),a
+.not_stereo:
 		ret
 
 ; --------------------------------
@@ -388,7 +415,30 @@ SndDrv_ReadTrack:
 		ld	a,(ix+(chnl_PsgOutFreq+1))
 		out	(psg_ctrl),a
 .no_upd_freq:
+		ld	a,(ix+chnl_PsgPan)
+		ld	c,a
+		ld	a,(ix+chnl_Chip)
+		ld	b,11101110b
+		rlca
+		rlca
+		rlca
+		and 	00000011b
+		dec	a
+		jp	m,.clrpanfirst
+		rlc 	b
+		dec	a
+		jp	m,.clrpanfirst
+		rlc 	b
+		dec	a
+		jp	m,.clrpanfirst
+		rlc 	b
+.clrpanfirst:
 
+		ld	a,(curr_PsgStereo)
+		and 	b
+		or	c
+		ld	(curr_PsgStereo),a
+		
 		ld	h,(ix+(chnl_InsAddr+1))
 		ld	l,(ix+chnl_InsAddr)
 		ld	e,(ix+chnl_PsgVolBase)		; Set volume
@@ -693,6 +743,24 @@ SndDrv_ReadTrack:
 		add 	hl,de
 		ld	(hl),0
 		ld	(ix+chnl_Type),0
+		
+; 		ld	a,(ix+chnl_Chip)
+; 		rlca
+; 		rlca
+; 		rlca
+; 		and	00000011b
+; 		ld	d,00010001b
+; 		dec	a
+; 		jp	m,.unlkrestpan
+; 		rlc 	d
+; 		dec	a
+; 		jp	m,.unlkrestpan
+; 		rlc 	d
+; 		dec	a
+; 		jp	m,.unlkrestpan
+; 		rlc 	d
+; .unlkrestpan:
+; 		ld	(ix+chnl_PsgPan),d
 		ret
 		
 ; -------------------------------------
@@ -959,25 +1027,47 @@ SndDrv_ReadTrack:
 		ret
 		
 ; -------------------------------------
-; Effect X - Set panning (FM ONLY)
+; Effect X - Set panning
 ; -------------------------------------
 
 .eff_X:
+		ld	a,(ix+chnl_Chip)
+		or	a
+		ret 	p
+		ld	b,a
+		
+		ld	de,0
+		ld	hl,.psgpan_list
 		ld	a,c
 		rlca
 		rlca
-		and	00000011b
-		ld	de,.fmpan_list
-		add 	a,e
+		and 	00000011b
 		ld	e,a
-		ld	a,(de)
-		ld	(ix+chnl_FmPan),a
+		add	hl,de
+		ld	a,b
+		rlca
+		rlca
+		rlca
+		and	00000011b
+		ld	d,(hl)
+		dec	a
+		jp	m,.stopstrchk
+		rlc 	d
+		dec	a
+		jp	m,.stopstrchk
+		rlc 	d
+		dec	a
+		jp	m,.stopstrchk
+		rlc 	d
+.stopstrchk:
+		ld	(ix+chnl_PsgPan),d
 		ret
-.fmpan_list:
-		db 080h		; 000h
-		db 080h		; 040h
-		db 0C0h		; 080h
-		db 040h		; 0C0h
+
+.psgpan_list:
+		db 00010000b	; 000h
+		db 00010000b	; 000h
+		db 00010001b	; 080h
+		db 00000001b	; 0C0h
 
 ; ---------------------------------------------
 ; Grab instrument from slot
@@ -1216,7 +1306,7 @@ SndDrv_ReadTrack:
 ; 		ld	d,a
 ; 		ld	a,(hl)
 ; 		ld	(ix+chnl_FmRegB4),a	
-; 		or	(ix+chnl_FmPan)		; FM panning
+; 		or	(ix+chnl_PsgPan)		; FM panning
 ; 		ld	e,a
 ; 		call	SndDrv_FmAutoSet
 ; 		inc 	hl
@@ -1661,15 +1751,45 @@ SndDrv_ReadTrack:
 ; ------------------------------------
 
 .set_X:
-	; TODO: GG PAN
+; 		ld	a,(ix+chnl_Chip)
+; 		or	a
+; 		ret 	p
+; 		rlca
+; 		rlca
+; 		rlca
+; 		and	00000011b
+; 
+; 		ld	d,11101110b
+; 		ld	e,(ix+chnl_PsgPan)
+; 		dec	a
+; 		jp	m,.stopstrchk
+; 		rlc 	d
+; 		rlc	e
+; 		dec	a
+; 		jp	m,.stopstrchk
+; 		rlc 	d
+; 		rlc	e
+; 		dec	a
+; 		jp	m,.stopstrchk
+; 		rlc 	d
+; 		rlc 	e
+; .stopstrchk:
+; 		ld	a,(curr_PsgStereo)
+; 		and 	d
+; 		or	e
+; 		ld	(curr_PsgStereo),a
 		ret
+		
+; 		ld	a,(iy+trck_PsgStereo)
+
+; 		ret
 ; 		ld	d,0B4h
 ; 		ld	a,(ix+chnl_Chip)
 ; 		and	11b
 ; 		or	d
 ; 		ld	d,a
 ; 		ld	a,(ix+chnl_FmRegB4)
-; 		or	(ix+chnl_FmPan)
+; 		or	(ix+chnl_PsgPan)
 ; 		ld	e,a
 ; 		jp	SndDrv_FmAutoSet
 
@@ -1764,25 +1884,29 @@ SndDrv_ResetChan:
 		ld	(hl),a
 		inc 	hl
 		djnz	.nexttype
+		
+	; Clean first PSG channels
 		push	ix
-		ld	b,MAX_CHNLS
+		ld	b,4			; 4 channels
 		xor	a
 		ld	de,20h
+		ld	c,00010001b
 .initchnls:
-		ld	(ix+chnl_Type),0		; Note request
-		ld	(ix+chnl_Note),-2		; Set Note off
-		ld	(ix+chnl_Vol),64		; Max volume
+		ld	(ix+chnl_Type),0	; Note request
+		ld	(ix+chnl_Note),-2	; Set Note off
+		ld	(ix+chnl_Vol),64	; Max volume
 		ld	(ix+chnl_EfNewVol),64
-		ld	(ix+chnl_FmPan),0C0h
+		ld	(ix+chnl_PsgPan),c
 		ld	(ix+chnl_InsType),a
 		ld	(ix+chnl_InsOpt),a
 		ld	(ix+chnl_EfVolSlide),a
 		ld	(ix+chnl_PsgVolEnv),a
 		ld	(ix+chnl_PsgIndx),a
+		rlc 	c
 		add 	ix,de
 		djnz	.initchnls
 		pop	ix
-		
+
 ; ------------------------------------
 
 		push	ix

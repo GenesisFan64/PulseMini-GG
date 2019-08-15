@@ -70,6 +70,7 @@ trck_TicksMain 	equ 1Ch
 trck_TempoBits	equ 1Dh
 trck_RowWait	equ 1Eh
 trck_TicksCurr	equ 1Fh
+trck_PsgStereo	equ 20h
 
 ; channel buffers
 chnl_Chip	equ 0
@@ -83,20 +84,15 @@ chnl_InsAddr	equ 7		; word
 chnl_Freq	equ 09h		; word
 chnl_InsType	equ 0Bh
 chnl_InsOpt	equ 0Ch
-chnl_FmPan	equ 0Dh
-chnl_FmRegB0	equ 0Eh
-chnl_FmRegB4	equ 0Fh
-chnl_FmRegKeys	equ 10h
-chnl_FmVolBase	equ 11h
-chnl_PsgVolBase	equ 12h
-chnl_PsgVolEnv	equ 13h
-chnl_PsgIndx	equ 14h
-chnl_SmplFlags	equ 15h
-chnl_EfVolSlide	equ 16h
-chnl_EfNewVol	equ 17h
-chnl_EfPortam	equ 18h		; word
-chnl_EfNewFreq	equ 1Ah		; word
-chnl_PsgOutFreq	equ 1Ch		; word
+chnl_PsgPan	equ 0Dh
+chnl_PsgVolBase	equ 0Eh
+chnl_PsgVolEnv	equ 0Fh
+chnl_PsgIndx	equ 10h
+chnl_EfVolSlide	equ 11h
+chnl_EfNewVol	equ 12h
+chnl_EfPortam	equ 13h		; word
+chnl_EfNewFreq	equ 15h		; word
+chnl_PsgOutFreq	equ 17h		; word
 
 ; ====================================================================
 ; ----------------------------------------------------------------
@@ -200,5 +196,6 @@ SndBuff_UsedChnls	ds MAX_CHNLS
 SndBuff_UsedChnls_2	ds MAX_CHNLS
 curr_NoiseMode		ds 1
 curr_SndBank		ds 1
+curr_PsgStereo		dw 1			; Game gear only: current and past values
 sizeof_mssnd		ds 1
 			finish

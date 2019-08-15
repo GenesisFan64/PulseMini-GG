@@ -41,14 +41,13 @@ RAM_CurrTrckVol	ds 2
 		call	System_VSync
 		call	System_Input
 		call	Sound_Run
+; 		call	.debug_me
 
 		ld	a,(Controller_1+on_hold)
 		ld	b,a
 		ld	a,(Controller_1+on_press)
 		ld	c,a
 		xor	a
-
-
 
 		ld	hl,RAM_CurrTrckId
 		ld	a,(RAM_CurrPlySlot)
@@ -123,6 +122,11 @@ RAM_CurrTrckVol	ds 2
 		ld	a,(RAM_CurrPlySlot)
 		jp	Sound_StopTrack
 	
+; .debug_me:
+; 		ld	de,140h+30h
+; 		ld	bc,0000h
+; 		ld	ix,curr_PsgStereo
+; 		jp	.this_val
 ; show values
 .show_values:
 		ld	de,140h+30h|800h
@@ -189,6 +193,10 @@ RAM_CurrTrckVol	ds 2
 		rrca
 		rrca
 		and	00001111b
+		cp	0Ah
+		jp	c,.no_A1
+		add 	a,7
+.no_A1:
 		ld	l,a
 		add 	hl,de
 		out	(c),l
@@ -197,6 +205,10 @@ RAM_CurrTrckVol	ds 2
 		ld	hl,0
 		ld	a,(ix)
 		and	00001111b
+		cp	0Ah
+		jp	c,.no_A2
+		add 	a,7
+.no_A2:
 		ld	l,a
 		add 	hl,de
 		out	(c),l
