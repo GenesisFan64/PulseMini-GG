@@ -1,4 +1,4 @@
- AS V1.42 Beta [Bld 118] - source file main.asm - page 1 - 8/15/2019 17:47:21
+ AS V1.42 Beta [Bld 118] - source file main.asm - page 1 - 8/16/2019 1:31:15
 
 
        1/       0 :                     ; ===========================================================================
@@ -3924,7 +3924,7 @@
      173/    8000 :                     		
      174/    8000 :                     ROM_END:	align 8000h
      175/    8000 :                     
- AS V1.42 Beta [Bld 118] - source file main.asm - page 2 - 8/15/2019 17:47:21
+ AS V1.42 Beta [Bld 118] - source file main.asm - page 2 - 8/16/2019 1:31:15
 
 
   symbol table (* = unused):
@@ -3954,7 +3954,7 @@
 *CONTROLLER_2 :                C24F - |  CURR_NOISEMODE :              C148 C |
  CURR_PSGSTEREO :              C14A C |  CURR_SNDBANK :                C149 C |
  DATABANK0 :                   4000 C | *DATABANK0_E :                 6230 C |
-*DATE :                   8/15/2019 - | *FALSE :                          0 - |
+*DATE :                   8/16/2019 - | *FALSE :                          0 - |
 *FULLPMMU :                       1 - |  GG_EXT_BITDIR :                  2 - |
  GG_EXT_COMM :                    1 - |  GG_INFO :                        0 - |
  GG_SERIAL :                      5 - | *GG_SERIAL_IN :                   4 - |
@@ -4086,7 +4086,7 @@
  STR_TEST :                    1D24 C |  SYSTEM_INIT :                 1749 C |
  SYSTEM_INIT.NOT_GG :          1768 C |  SYSTEM_INPUT :                1796 C |
  SYSTEM_INPUT.NO_GGSTRT :      17A8 C |  SYSTEM_VSYNC :                178E C |
-*TIME :                    17:47:20 - |  TRACKDATA_TEST :              1DAE C |
+*TIME :                     1:31:15 - |  TRACKDATA_TEST :              1DAE C |
  TRCK_ACTIVE :                   11 - |  TRCK_BLOCKCURR :                 E - |
  TRCK_BLOCKS :                   12 - |  TRCK_INSTR :                    16 - |
 *TRCK_MASTERVOL :                 F - |  TRCK_PATTBASE :                 14 - |
@@ -4121,7 +4121,7 @@
     358 symbols
      78 unused symbols
 
- AS V1.42 Beta [Bld 118] - source file main.asm - page 3 - 8/15/2019 17:47:21
+ AS V1.42 Beta [Bld 118] - source file main.asm - page 3 - 8/16/2019 1:31:15
 
 
   defined macros:
@@ -4132,7 +4132,7 @@ ROMPAD                                | STRUCT
 
       4 macros
 
- AS V1.42 Beta [Bld 118] - source file main.asm - page 4 - 8/15/2019 17:47:21
+ AS V1.42 Beta [Bld 118] - source file main.asm - page 4 - 8/16/2019 1:31:15
 
 
   defined functions:
@@ -4140,7 +4140,7 @@ ROMPAD                                | STRUCT
 
 LOCATE                                |
 
- AS V1.42 Beta [Bld 118] - source file main.asm - page 5 - 8/15/2019 17:47:21
+ AS V1.42 Beta [Bld 118] - source file main.asm - page 5 - 8/16/2019 1:31:15
 
 
   codepages:
@@ -4149,7 +4149,7 @@ LOCATE                                |
 STANDARD (0 changed characters)
 
 
-0.34 seconds assembly time
+0.28 seconds assembly time
 
    3836 lines source file
    3992 lines incl. macro expansions
