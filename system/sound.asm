@@ -19,9 +19,9 @@ Sound_Init:
 		out	(psg_ctrl),a			; Set NOISE Volume to OFF
 		; YM silence goes here
 	
-	; Set priority to the BGM track buffer
-		ld	hl,SndBuff_Track_2+trck_Priority
-		ld	(hl),1
+	; Set LOW priority to the BGM track buffer
+		ld	a,1
+		ld	(SndBuff_Track_2+trck_Priority),a
 		
 	; Init the first 4 channels as PSG
 		ld	ix,SndBuff_ChnlBuff_1
@@ -113,6 +113,23 @@ Sound_SetTrack:
 		ld	(iy+(trck_ReqIns+1)),a
 
 		ld	(iy+trck_ReqFlag),1		; Request $01, set and play song
+		ret
+	
+; --------------------------------------------------------
+; Sound_SetVolume
+; 
+; Input:
+;  a | Track slot
+;  c | Sound volume
+; --------------------------------------------------------
+
+Sound_SetVolume:
+		ld	iy,SndBuff_Track_1
+		or	a
+		jp	z,.sfx_prio
+		ld	iy,SndBuff_Track_2
+.sfx_prio:
+		ld	(iy+trck_Volume),c
 		ret
 		
 ; --------------------------------------------------------
@@ -1574,6 +1591,7 @@ SndDrv_ReadTrack:
 ; --------------------------------------------
 
 .set_psg_vol:
+		add	a,(iy+trck_Volume)
 		ld	e,0
 		cp	40h
 		jp	c,.pntoo_much
@@ -1592,7 +1610,9 @@ SndDrv_ReadTrack:
 		and	00001111b
 		ld	e,a
 .pntoppsgv:
-		ld	(ix+chnl_PsgVolBase),e
+		ld	a,e
+		and	00001111b
+		ld	(ix+chnl_PsgVolBase),a
 		ret
 
 ; --------------------------------------------

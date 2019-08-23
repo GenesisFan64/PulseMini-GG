@@ -12,9 +12,10 @@ plyr_ani_cntr 	ds 1
 		finish
 
 		struct RAM_Local
-RAM_CurrPlySlot	ds 1
-RAM_CurrTrckId	ds 2
-RAM_CurrTrckVol	ds 2
+RAM_PlyrCurrIds	ds 2
+RAM_PlyrCurrVol	ds 2
+RAM_CurrTrack	ds 1
+RAM_CurrSelect	ds 1
 		finish
 
 ; ====================================================================
@@ -34,44 +35,64 @@ RAM_CurrTrckVol	ds 2
 		call	Video_LoadPal
 		
 		xor	a
-		ld	(RAM_CurrPlySlot),a
+		ld	(RAM_CurrTrack),a
 		call	.show_values
 
 .loop:
 		call	System_VSync
 		call	System_Input
 		call	Sound_Run
-; 		call	.debug_me
 
-		ld	a,(Controller_1+on_hold)
-		ld	b,a
 		ld	a,(Controller_1+on_press)
 		ld	c,a
-		xor	a
+		ld	a,(Controller_1+on_hold)
+		ld	b,a
+		bit 	bitJoy1,b
+		jp	nz,.b_hold
 
-		ld	hl,RAM_CurrTrckId
-		ld	a,(RAM_CurrPlySlot)
-		or	a
-		jp	z,.slot1noad
-		inc 	hl
-.slot1noad:
-		ld	d,1
-		bit	bitJoyRight,c
-		call	nz,.modify_track
-		ld	d,-1
-		bit	bitJoyLeft,c
-		call	nz,.modify_track
-		bit	bitJoyUp,c
-		call	nz,.modify_slot
 		ld	d,1
 		bit	bitJoyDown,c
-		call	nz,.modify_slot
-
-		bit	bitJoy2,c		; c is lost after this
-		call	nz,.play_track
-		bit	bitJoy1,c
+		call	nz,.modify_track
+		bit	bitJoyRight,c
+		call	nz,.modify_select
+		ld	d,-1
+		bit	bitJoyUp,c
+		call	nz,.modify_track
+		bit	bitJoyLeft,c
+		call	nz,.modify_select
+		bit	bitJoyStart,c
 		call	nz,.stop_track
-
+		jp	.refresh
+		
+.b_hold:
+		ld	hl,RAM_PlyrCurrIds
+		ld	a,(RAM_CurrSelect)
+		or	a
+		jp	z,.idmode
+		ld	hl,RAM_PlyrCurrVol
+.idmode:
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	z,.firsttrck
+		inc 	hl
+.firsttrck:
+		ld	d,1
+		bit	bitJoyRight,c
+		call	nz,.modify_id
+		ld	d,-1
+		bit	bitJoyLeft,c
+		call	nz,.modify_id
+		
+; exit this
+.refresh:
+		ld	hl,RAM_PlyrCurrIds
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	z,.idmode2
+		inc 	hl
+.idmode2:
+		bit	bitJoy2,c			; c is lost after this
+		call	nz,.play_track
 		ld	a,(Controller_1+on_press)	; update values on any press
 		or	a
 		call	nz,.show_values
@@ -82,19 +103,25 @@ RAM_CurrTrckVol	ds 2
 ; Subs
 ; ----------------------------------------------------------------
 
-; hl - RAM_CurrTrckId
-.modify_track:
+; hl - RAM_PlyrCurrIds
+
+.modify_id:
 		ld	a,(hl)
 		add 	a,d
-		and	00000011b			; limit
+; 		and	00000011b
 		ld	(hl),a
 		ret
-
-.modify_slot:
-		ld	a,(RAM_CurrPlySlot)
+.modify_select:
+		ld	a,(RAM_CurrSelect)
 		add 	a,d
 		and	00000001b			; limit
-		ld	(RAM_CurrPlySlot),a
+		ld	(RAM_CurrSelect),a
+		ret
+.modify_track:
+		ld	a,(RAM_CurrTrack)
+		add 	a,d
+		and	00000001b
+		ld	(RAM_CurrTrack),a
 		ret
 		
 .play_track:
@@ -115,38 +142,71 @@ RAM_CurrTrckVol	ds 2
 		inc 	hl
 		ld	e,(hl)
 		inc 	hl
-		ld	a,(RAM_CurrPlySlot)
-		jp	Sound_SetTrack
-
+		ld	a,(RAM_CurrTrack)
+		call	Sound_SetTrack
+		
+		ld	de,0
+		ld	a,(RAM_CurrTrack)
+		ld	e,a
+		ld	hl,RAM_PlyrCurrVol
+		add 	hl,de
+		ld	c,(hl)
+		jp	Sound_SetVolume
+		
 .stop_track:
-		ld	a,(RAM_CurrPlySlot)
+		ld	a,(RAM_CurrTrack)
 		jp	Sound_StopTrack
-	
-; .debug_me:
-; 		ld	de,140h+30h
-; 		ld	bc,0000h
-; 		ld	ix,curr_PsgStereo
-; 		jp	.this_val
+
 ; show values
 .show_values:
-		ld	de,140h+30h|800h
-		ld	a,(RAM_CurrPlySlot)
-		or	a
-		jp	z,.slot_1
 		ld	de,140h+30h
+		ld	a,(RAM_CurrSelect)
+		or	a
+		jp	nz,.slot_1
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	nz,.slot_1
+		ld	de,140h+30h|800h
 .slot_1:
 		ld	bc,0708h
-		ld	ix,RAM_CurrTrckId
+		ld	ix,RAM_PlyrCurrIds
 		call	.this_val
 		inc 	ix
-		
-		ld	de,140h+30h|800h
-		ld	a,(RAM_CurrPlySlot)
+		ld	de,140h+30h
+		ld	a,(RAM_CurrSelect)
 		or	a
 		jp	nz,.slot_2
-		ld	de,140h+30h
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	z,.slot_2
+		ld	de,140h+30h|800h
 .slot_2:
 		ld	bc,070Ah
+		call	.this_val
+		
+		ld	de,140h+30h
+		ld	a,(RAM_CurrSelect)
+		or	a
+		jp	z,.slot_3
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	nz,.slot_3
+		ld	de,140h+30h|800h
+.slot_3:
+		ld	bc,0D08h
+		ld	ix,RAM_PlyrCurrVol
+		call	.this_val
+		inc 	ix
+		ld	de,140h+30h
+		ld	a,(RAM_CurrSelect)
+		or	a
+		jp	z,.slot_4
+		ld	a,(RAM_CurrTrack)
+		or	a
+		jp	z,.slot_4
+		ld	de,140h+30h|800h
+.slot_4:
+		ld	bc,0D0Ah
 
 ; ----------------------------------------
 ; show current value

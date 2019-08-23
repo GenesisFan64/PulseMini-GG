@@ -71,6 +71,7 @@ trck_TempoBits	equ 1Dh
 trck_RowWait	equ 1Eh
 trck_TicksCurr	equ 1Fh
 trck_PsgStereo	equ 20h
+trck_Volume	equ 21h
 
 ; channel buffers
 chnl_Chip	equ 0
